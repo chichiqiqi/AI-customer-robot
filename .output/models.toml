@@ -1,0 +1,53 @@
+## 模型配置文件（填写你的 Key）
+## 说明：本文件用于运行时读取，请在部署前填入真实 Key。
+
+[llm]
+provider = "deepseek"
+model = "deepseek-chat"
+api_key = "sk-d13c6af177c94785ae087a24abe2301a"  # DeepSeek API Key
+base_url = "https://api.deepseek.com/v1"
+temperature = 0.7
+max_tokens = 2048
+
+[llm.prompts]
+intent_detection = """
+分析用户问题的意图是否清晰。如果问题模糊、缺少关键信息，返回 {"clear": false, "reason": "缺少的信息"}
+如果问题清晰明确，返回 {"clear": true}
+用户问题：{query}
+"""
+
+query_rewrite = """
+将用户问题改写为适合知识库检索的简洁表达，保留关键实体与意图。
+用户问题：{query}
+改写结果：
+"""
+
+clarification = """
+用户的问题不够清晰：{query}
+缺少的信息：{reason}
+请生成一个友好的反问，引导用户提供更多细节。
+"""
+
+rag_response = """
+基于以下知识库内容回答用户问题。
+
+知识库内容：
+{context}
+
+用户问题：{query}
+
+请提供准确、有帮助的回答。如果知识库内容不足以回答，请如实说明。
+"""
+
+[embedding]
+provider = "qwen"
+model = "text-embedding-v4"
+api_key = "sk-dd76f6790eec45b2af0aa4ade55d8fe8"  # DashScope API Key
+base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+dimension = 1536
+
+[retrieval]
+qa_threshold = 0.85
+vector_top_k = 3
+chunk_size = 500
+chunk_overlap = 50

@@ -1,0 +1,28 @@
+[app]
+debug = true
+secret_key = "dev-secret-key-change-in-production"
+database_url = "sqlite+aiosqlite:///./data/app.db"
+host = "0.0.0.0"
+port = 8000
+cors_origins = ["http://localhost:5173"]
+
+[llm]
+provider = "deepseek"
+model = "deepseek-chat"
+api_key = "sk-d13c6af177c94785ae087a24abe2301a"          # 填写 DeepSeek API Key
+base_url = "https://api.deepseek.com/v1"
+temperature = 0.7
+max_tokens = 2048
+
+[embedding]
+provider = "qwen"
+model = "text-embedding-v4"
+api_key = "sk-dd76f6790eec45b2af0aa4ade55d8fe8"          # 填写 DashScope API Key
+base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+dimension = 1536
+
+[retrieval]
+qa_threshold = 0.85
+vector_top_k = 3
+chunk_size = 500
+chunk_overlap = 50
