@@ -159,6 +159,100 @@ AI-customer-robot/
 
 ---
 
+## 外网访问（cpolar 内网穿透）
+
+如果你想让别人（不在同一个 WiFi 下）也能访问你的系统，需要用 **cpolar** 做内网穿透。
+
+### 什么是内网穿透？
+
+你的电脑跑在家里/公司的局域网里，外面的人访问不了 `localhost`。cpolar 会给你一个公网地址（比如 `xxx.cpolar.top`），别人通过这个地址就能访问你本地的服务。
+
+### 第一步：安装 cpolar
+
+> 详细教程参考官方文档：https://www.cpolar.com/blog/macos-installation-cpolar
+
+**Mac 用户**（通过 Homebrew 安装）：
+
+```bash
+# 1. 安装 cpolar
+brew tap probezy/core && brew install cpolar
+
+# 2. 认证（token 在 cpolar 官网获取）
+cpolar authtoken 你的token
+
+# 3. 安装并启动后台服务
+sudo cpolar service install
+sudo cpolar service start
+```
+
+安装完成后，打开浏览器访问 **http://localhost:9200**，用你的 cpolar 账号登录。
+
+> 还没有 cpolar 账号？去 https://dashboard.cpolar.com/auth 免费注册一个。
+
+### 第二步：创建隧道
+
+1. 打开 cpolar 本地管理页面：http://localhost:9200/#/tunnels/list
+2. 点击 **「创建隧道」**
+3. 填写信息：
+
+| 字段 | 填什么 |
+|------|--------|
+| 隧道名称 | 随便填，比如 `ai-customer` |
+| 协议 | `http` |
+| 本地地址 | `5173`（前端端口） |
+| 域名类型 | 选「随机域名」（免费版） |
+
+4. 点击 **「创建」**
+
+### 第三步：配置前端允许外网域名
+
+创建隧道后，cpolar 会分配一个公网地址，类似 `xxxxx.r22.cpolar.top`。
+
+打开 `frontend/vite.config.ts`，把你的 cpolar 域名加进去：
+
+```typescript
+export default defineConfig({
+  plugins: [vue()],
+  server: {
+    allowedHosts: ['你的域名.cpolar.top'],  // ← 改成你的 cpolar 域名
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
+  },
+})
+```
+
+> **为什么要改这个？** Vite 开发服务器默认只允许 `localhost` 访问，加上 cpolar 域名后才能从外网打开页面。
+
+### 第四步：重启前端 & 访问
+
+```bash
+# 在 frontend 目录下重启前端
+cd frontend
+npm run dev
+```
+
+然后把 cpolar 给你的公网地址（比如 `http://xxxxx.r22.cpolar.top`）发给别人，他们打开就能用了！
+
+### cpolar 常见问题
+
+**Q: 提示 "limited to simultaneous cpolar client sessions"**
+免费版只能同时开 1 个隧道。去 http://localhost:9200/#/tunnels/list 关掉不用的隧道，或者在 https://dashboard.cpolar.com/status 查看在线状态。
+
+**Q: 外网打开页面白屏 / Network Error**
+检查三件事：
+1. 后端是否在 8000 端口运行中
+2. 前端是否在 5173 端口运行中
+3. `vite.config.ts` 里的 `allowedHosts` 是否加了你的 cpolar 域名
+
+**Q: 每次重启 cpolar 域名都变了**
+免费版是随机域名，每次重启会变。付费版可以固定域名。域名变了记得同步更新 `vite.config.ts` 里的 `allowedHosts`。
+
+---
+
 ## 常见问题
 
 ### Q: 启动后端报 "address already in use"
